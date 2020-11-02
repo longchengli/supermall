@@ -1,11 +1,12 @@
 <template>
 	<div class="home">
-		<home-navigation-bar class="navigation"/>
-		<div style="height: 130px;background-color: coral;">轮播图</div>
-		
-		
-		
-		
+		<home-navigation-bar class="navigation" />
+		<home-carousel :banners="banners" />
+		<home-recommend :recommends="recommends" />
+		<home-feature-view />
+		<tab-control class="tabcontrol" :titles="titles" />
+
+
 		<ul>
 			<li>列表1</li>
 			<li>列表2</li>
@@ -31,45 +32,81 @@
 
 <script>
 	import HomeNavigationBar from './childcomponents/HomeNavigationBar'
-	
+	import HomeCarousel from './childcomponents/HomeCarousel'
+	import HomeRecommend from './childcomponents/HomeRecommend'
+	import HomeFeatureView from './childcomponents/HomeFeatureView'
+	import TabControl from '@/components/tabcontrol/TabControl'
+
+
 	import {
-		getHomeMultidata
+		getHomeMultidata,
+		getHomeGoods
 	} from '@/network/home.js'
-	
-	export default{
-		name:'Home',
-		components:{
-			HomeNavigationBar
+
+	export default {
+		name: 'Home',
+		components: {
+			HomeNavigationBar,
+			HomeCarousel,
+			HomeRecommend,
+			HomeFeatureView,
+			TabControl
 		},
-		created(){
+		created() {
 			getHomeMultidata().then(res => {
-				console.log(res);
+				this.banners = res.data.banner.list
+				this.recommends = res.data.recommend.list
 			}).catch(err => {
-				
+
+			})
+			getHomeGoods().then(res => {
+				console.log(res);
 			})
 		},
-		data(){
-			return{
-				
+		data() {
+			return {
+				banners: [],
+				recommends: [],
+				titles: ['流行', '新款', '精选'],
+				goods: {
+					pop: {
+						page: 1,
+						list: []
+					},
+					new: {
+						page: 1,
+						list: []
+					},
+					sell: {
+						page: 1,
+						list: []
+					}
+				}
 			}
 		}
 	}
 </script>
 
 <style>
-	li{
+	li {
 		height: 50px;
 		line-height: 50px;
 	}
-	
-	.home{
+
+	.home {
 		padding-top: 44px;
 	}
-	
-	.navigation{
+
+	.navigation {
 		width: 100%;
 		height: 44px;
 		position: fixed;
 		top: 0;
+		z-index: 9;
+	}
+
+	.tabcontrol {
+		top: 43px;
+		position: sticky;
 	}
 </style>
