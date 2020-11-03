@@ -2,31 +2,15 @@
 	<div class="home">
 		<home-navigation-bar class="navigation" />
 
-		<scroll class="content" :probeType="3" :pullUpLoad="true" @scroll="contentScroll">
+		<scroll class="content" ref="scroll" :probeType="3" :pullUpLoad="true" @scroll="contentScroll" @pullingUpHandle="pullingUpHandle">
 			<home-carousel :banners="banners" />
 			<home-recommend :recommends="recommends" />
 			<home-feature-view />
-			<tab-control class="tabcontrol" :titles="titles" />
-			<ul>
-				<li>列表1</li>
-				<li>列表2</li>
-				<li>列表3</li>
-				<li>列表4</li>
-				<li>列表5</li>
-				<li>列表6</li>
-				<li>列表7</li>
-				<li>列表8</li>
-				<li>列表9</li>
-				<li>列表10</li>
-				<li>列表11</li>
-				<li>列表12</li>
-				<li>列表13</li>
-				<li>列表14</li>
-				<li>列表15</li>
-			</ul>
+			<tab-control class="tabcontrol" :titles="titles" @tabControlClick="tabControlClick" />
+			<goods-list :goods="goodsList"></goods-list>
 		</scroll>
 
-		<back-top v-show="isShowBackTop"/>
+		<back-top v-show="isShowBackTop" @backTopClick="backTopClick" />
 
 	</div>
 </template>
@@ -39,6 +23,7 @@
 	import TabControl from '@/components/tabcontrol/TabControl'
 	import Scroll from '@/components/scroll/Scroll'
 	import BackTop from '@/components/backtop/BackTop'
+	import GoodsList from '@/components/goods/GoodsList'
 
 
 	import {
@@ -55,18 +40,14 @@
 			HomeFeatureView,
 			TabControl,
 			Scroll,
-			BackTop
+			BackTop,
+			GoodsList
 		},
 		created() {
-			getHomeMultidata().then(res => {
-				this.banners = res.data.banner.list
-				this.recommends = res.data.recommend.list
-			}).catch(err => {
-
-			})
-			getHomeGoods().then(res => {
-				console.log(res);
-			})
+			this.getHomeMultidata()
+			this.getHomeGoods('pop')
+			this.getHomeGoods('new')
+			this.getHomeGoods('sell')
 		},
 		data() {
 			return {
@@ -74,26 +55,82 @@
 				recommends: [],
 				titles: ['流行', '新款', '精选'],
 				goods: {
-					pop: {
-						page: 1,
+					'pop': {
+						page: 0,
 						list: []
 					},
-					new: {
-						page: 1,
+					'new': {
+						page: 0,
 						list: []
 					},
-					sell: {
-						page: 1,
+					'sell': {
+						page: 0,
 						list: []
 					}
 				},
+				currentType: 'pop',
 				isShowBackTop: false
 			}
 		},
-		methods:{
-			contentScroll(position){
-				this.isShowBackTop = (-position.y) > 400
+		computed: {
+			goodsList() {
+				return this.goods[this.currentType].list
 			}
+		},
+		methods: {
+			//网络请求
+			getHomeMultidata() {
+				getHomeMultidata().then(res => {
+					this.banners = res.data.banner.list
+					this.recommends = res.data.recommend.list
+				}).catch(err => {
+					console.log(err);
+				})
+			},
+			getHomeGoods(type) {
+				const page = this.goods[type].page + 1
+				getHomeGoods(type, page).then(res => {
+					this.goods[type].list.push(...res.data.list)
+					this.goods[type].page += 1
+					
+					this.$refs.scroll.finishPullUp()
+					this.$refs.scroll.refresh()
+				}).catch(err => {
+					console.log(err);
+				})
+			},
+
+			//判断是否显示返回顶部按钮
+			contentScroll(position) {
+				this.isShowBackTop = (-position.y) > 600
+			},
+
+			//点击返回顶部
+			backTopClick() {
+				this.$refs.scroll.scrollTo(0, 0, 1000)
+			},
+
+			//判断那个被选中
+			tabControlClick(index) {
+				switch (index) {
+					case 0:
+						this.currentType = 'pop'
+						break
+					case 1:
+						this.currentType = 'new'
+						break
+					case 2:
+						this.currentType = 'sell'
+						break
+				}
+				this.$refs.scroll.refresh()
+			},
+			
+			//上拉加载更多
+			pullingUpHandle(){
+				this.getHomeGoods(this.currentType)
+			}
+
 		}
 	}
 </script>

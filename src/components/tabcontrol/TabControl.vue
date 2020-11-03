@@ -24,7 +24,10 @@
 		},
 		methods: {
 			itemClick(index) {
-				this.currentIndex = index
+				if(index != this.currentIndex){
+					this.currentIndex = index
+					this.$emit('tabControlClick', index)
+				}
 			}
 		}
 

@@ -1,25 +1,33 @@
 <template>
 	<div class="goods">
-		<div class="goods-item" v-for="">
-
-		</div>
-		<a></a>
+		<goods-list-item v-for="item in goods" :goods-item="item"/>
 	</div>
 </template>
 
 <script>
+	import GoodsListItem from './GoodsListItem'
 	export default {
 		name: 'GoodsList',
 		props: {
 			goods: {
-				type: Object,
+				type: Array,
 				default () {
-					return {}
+					return []
 				}
 			}
 		},
+		components: {
+			GoodsListItem
+		}
 	}
 </script>
 
-<style>
+<style scope>
+	.goods{
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-around;
+		
+		padding: 2px;
+	}
 </style>
