@@ -31,17 +31,20 @@
 			}
 		},
 		methods: {
-			refresh(){
-				setTimeout(() => {
-					this.scroll.refresh()
-				},1000)
+			//刷新scroll
+			refresh() {
+				console.log('刷新scroll');
+				this.scroll && this.scroll.refresh()
+			},
+
+			//显示scroll区域到指定位置
+			scrollTo(x, y, time = 500) {
+				this.scroll && this.scroll.scrollTo(x, y, time)
 			},
 			
-			scrollTo(x, y, time = 500) {
-				this.scroll.scrollTo(x, y, time)
-			},
-			finishPullUp(){
-				this.scroll.finishPullUp()
+			//完成上拉加载更多时调用
+			finishPullUp() {
+				this.scroll && this.scroll.finishPullUp()
 			}
 		},
 		mounted() {
@@ -51,18 +54,14 @@
 				pullUpLoad: this.pullUpLoad
 			})
 
-			setTimeout(() => {
-				this.scroll.refresh()
-			}, 2000)
-
 			if (this.probeType >= 2) {
 				this.scroll.on('scroll', (position) => {
 					this.$emit('scroll', position)
 				})
 			}
-			
-			if(this.pullUpLoad){
-				this.scroll.on('pullingUp',() => {
+
+			if (this.pullUpLoad) {
+				this.scroll.on('pullingUp', () => {
 					this.$emit('pullingUpHandle')
 				})
 			}

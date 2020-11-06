@@ -1,12 +1,13 @@
 <template>
 	<div class="home">
 		<home-navigation-bar class="navigation" />
+		<tab-control class="tabControlShow" v-if="isTabControlShow" :titles="titles" ref="tabControl1"/>
 
 		<scroll class="content" ref="scroll" :probeType="3" :pullUpLoad="true" @scroll="contentScroll" @pullingUpHandle="pullingUpHandle">
-			<home-carousel :banners="banners" />
+			<home-carousel :banners="banners" @swiperImageLoad="swiperImageLoad"/>
 			<home-recommend :recommends="recommends" />
 			<home-feature-view />
-			<tab-control class="tabcontrol" :titles="titles" @tabControlClick="tabControlClick" />
+			<tab-control :titles="titles" @tabControlClick="tabControlClick" ref="tabControl2"/>
 			<goods-list :goods="goodsList"></goods-list>
 		</scroll>
 
@@ -30,6 +31,10 @@
 		getHomeMultidata,
 		getHomeGoods
 	} from '@/network/home.js'
+
+	import {
+		debounce,
+	} from '@/common/util.js'
 
 	export default {
 		name: 'Home',
@@ -69,10 +74,16 @@
 					}
 				},
 				currentType: 'pop',
-				isShowBackTop: false
+				//返回顶部按钮
+				isShowBackTop: false,
+				//选项滑动到顶部固定位置
+				tabControOffSet: 0,
+				isTabControlShow: false,
+
 			}
 		},
 		computed: {
+			//首页商品显示
 			goodsList() {
 				return this.goods[this.currentType].list
 			}
@@ -92,7 +103,7 @@
 				getHomeGoods(type, page).then(res => {
 					this.goods[type].list.push(...res.data.list)
 					this.goods[type].page += 1
-					
+
 					this.$refs.scroll.finishPullUp()
 					this.$refs.scroll.refresh()
 				}).catch(err => {
@@ -103,6 +114,7 @@
 			//判断是否显示返回顶部按钮
 			contentScroll(position) {
 				this.isShowBackTop = (-position.y) > 600
+				this.isTabControlShow = (-position.y) > this.tabControOffSet
 			},
 
 			//点击返回顶部
@@ -123,14 +135,26 @@
 						this.currentType = 'sell'
 						break
 				}
-				this.$refs.scroll.refresh()
 			},
-			
+
 			//上拉加载更多
-			pullingUpHandle(){
+			pullingUpHandle() {
 				this.getHomeGoods(this.currentType)
+			},
+
+			//轮播图加载完计算tabcontrol位置
+			swiperImageLoad() {
+				this.tabControOffSet = this.$refs.tabControl2.$el.offsetTop
 			}
 
+		},
+
+		mounted() {
+			const refresh = debounce(this.$refs.scroll.refresh, 50)
+			//图片加载了刷新scroll
+			this.$bus.$on('imgLoad', () => {
+				refresh()
+			})
 		}
 	}
 </script>
@@ -150,11 +174,10 @@
 		right: 0;
 	}
 
-	li {
-		height: 50px;
-		line-height: 50px;
+	.tabControlShow {
+		position: relative;
+		z-index: 9;
 	}
-
 
 
 	/* 	.navigation {
@@ -165,8 +188,8 @@
 		z-index: 9;
 	} */
 
-	.tabcontrol {
+	/* 	.tabcontrol {
 		top: 43px;
 		position: sticky;
-	}
+	} */
 </style>
