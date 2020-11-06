@@ -1,13 +1,13 @@
 <template>
 	<div class="home">
 		<home-navigation-bar class="navigation" />
-		<tab-control class="tabControlShow" v-if="isTabControlShow" :titles="titles" ref="tabControl1"/>
+		<tab-control class="tabControlShow" v-show="isTabControlShow" :titles="titles" @tabControlClick="tabControlClick" ref="tabControl1" />
 
 		<scroll class="content" ref="scroll" :probeType="3" :pullUpLoad="true" @scroll="contentScroll" @pullingUpHandle="pullingUpHandle">
-			<home-carousel :banners="banners" @swiperImageLoad="swiperImageLoad"/>
+			<home-carousel :banners="banners" @swiperImageLoad="swiperImageLoad" />
 			<home-recommend :recommends="recommends" />
 			<home-feature-view />
-			<tab-control :titles="titles" @tabControlClick="tabControlClick" ref="tabControl2"/>
+			<tab-control :titles="titles" @tabControlClick="tabControlClick" ref="tabControl2" />
 			<goods-list :goods="goodsList"></goods-list>
 		</scroll>
 
@@ -79,6 +79,8 @@
 				//选项滑动到顶部固定位置
 				tabControOffSet: 0,
 				isTabControlShow: false,
+				//离开首页记录首页位置
+				homeY: 0,
 
 			}
 		},
@@ -135,6 +137,8 @@
 						this.currentType = 'sell'
 						break
 				}
+				this.$refs.tabControl1.currentIndex = index
+				this.$refs.tabControl2.currentIndex = index
 			},
 
 			//上拉加载更多
@@ -155,7 +159,19 @@
 			this.$bus.$on('imgLoad', () => {
 				refresh()
 			})
-		}
+		},
+
+
+		activated() {
+
+		},
+		deactivated() {
+			this.homeY = this.$refs.scroll.scroll.y
+			console.log(this.homeY);
+		},
+
+
+
 	}
 </script>
 
